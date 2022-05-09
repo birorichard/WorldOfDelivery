@@ -1,0 +1,126 @@
+<html>
+<head>
+    <style>
+    
+    .game-board
+{
+	width: 200px;
+	height: 200px;
+    background-color: #34495e;
+    color: #fff;
+    border: 6px solid #2c3e50;
+    border-radius: 3px;
+        
+	display: grid;
+	grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+}
+
+.box
+{
+  border: 6px solid #2c3e50;
+  border-radius: 2px;
+  font-family: Helvetica;
+  font-weight: bold;
+  font-size: 2em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.land {
+    background-color: green;
+}
+.ship {
+    background-color: grey;
+}
+
+code {
+    background-color: #222;
+    color: #eee;
+    border: 1px solid #00c;
+    padding: 1px 3px;
+    border-radius: 4px;
+}
+    </style>
+<title>Avalanche Studios Backend Programming Test</title>
+<body>
+<h1>Avalanche Studios Backend Programming Test</h1>
+<img src="logo.png">
+<p>
+    World Of Delivery is a small multiplayer shipping/pirating game. 
+</p>
+<p>The game simulates a number of cargo ships that deliver cargo between different ports in the world. 
+<br />The players can buy ships and shoot missiles at the cargo ships and dive to pickup the cargo from the destroyed ships.
+<br />
+<ul>
+    <li>Every ship can make one move per second in tile grid.</li>
+    <li>The ship can move to it's 8 adjecent tiles as long as it's not obstructed by land.</li>
+</ul>
+<div style="width:300px;">
+<figure>
+<div class="game-board">
+    <div class="box">+</div>
+    <div class="box">+</div>
+    <div class="box">+</div>
+    <div class="box">+</div>
+    <div class="box ship">s</div>
+    <div class="box land">-</div>
+    <div class="box">+</div>
+    <div class="box">+</div>
+    <div class="box">+</div>
+</div>
+<figcaption>
+    Example game board where the water tiles are marked with + the ship (marked as s) can move to all tiles except to the right which is land (marked as -).
+</figcaption>
+</figure>
+</div>
+
+</p>
+<p>
+Start the game engine executable delivered in this package. It's located in (Win64, Linux64, Darwin64)/bin<br>
+The server should be written in go and the SQL database you should use is: <a href="https://github.com/proullon/ramsql">github.com/proullon/ramsql</a>
+</p>
+<h3>Notes:</h3>
+<ul>
+    <li>The worldofdelivery executable simulates a lot of ships. If you have a slow computer you could start it with <code>worldofdelivery -ships 16536</code></li>
+    <li>The worldofdelivery executable can output error messages to help you figure out why it reports failures with <code>worldofdelivery -show-warnings</code></li>
+</ul>
+
+
+<h2>Part 1. Implement The Backend API</h2>
+<p>The executable worldofdelivery sends requests to http://localhost:8080 
+The messages the executable sends are defined in the <a href="worldofdelivery_output_api.html">Output API</a>.
+
+</p>
+<p>Your first task is to implement a backend that handles the messages sent by the game. 
+<br>
+The solution should output a log message to standard out once per second with: Number of recieved messages / second.  </p>
+
+<h2>Part 2. Store Trade Routes</h2>
+<p>The cargo ships runs trade routes between the different ports. A trade route is all the tile coordinates a ship hits between LeavePort and ShipReachedDestination </p>
+<p>Your task is to store these trade routes and the x, y coordinates of the path of the trade route in an sql database as the data comes in to the API you implemented in part 1. Write at least 1 unit test that verifies that your solution works.
+<br>
+The solution should output a log message to standard out once per second with: Number of recieved messages / second, elapsed time since start and the total number of routes it has found.
+</p>
+
+<h3>Notes:</h3>
+<ul>
+    <li>All ships on a trade route follow the same path.</li>
+    <li>There are a limited number of ports</li>
+    <li>Ports have ids that starts with 0.</li>
+    <li>PortID in ShipReachedDestination equals DestinationPort in LeavePort</li>
+    <li>All ports have trade routes with all other ports.</li>
+    <li>Let the worldofdelivery executable run for at least 15 minutes to get all paths.</li>
+</ul>
+
+<p>ramsql is very slow, therefore we want you to limit the traffic to the DB. How you do this is up to you</p>
+
+<h2>Part 3. Visualize trade routes</h2>
+<p>
+Given the trade routes stored in Part 2. Implement a small html / javascript page that visualizes these trade routes and their paths with the X, Y coordinates of every travelled point.
+<br> The output graph/image <strong>should</strong> be generated in the browser in javascript and not in your backend.<br>
+Tip: An easy to read graph could have a color for every trade route and plot the X,Y coordinates in that paths color.
+</p>
+
+</body>
+</html>
