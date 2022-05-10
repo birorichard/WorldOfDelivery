@@ -7,13 +7,13 @@ import (
 
 func ShipHandler(r chi.Router) {
 
-	r.Post("/ShipReachedDestination", actions.ShipReachedDestination)
 	r.Post("/DiveComplete", actions.DiveComplete)
 	r.Post("/ReachedLand", actions.ReachedLand)
 
 }
 
 func RadioHandler(r chi.Router) {
+	r.Post("/ShipReachedDestination", actions.ShipReachedDestination)
 	r.Post("/ShipMovement", actions.ShipMovement)
 	r.Post("/ShipLeavePort", actions.ShipLeavePort)
 	r.Post("/ShipUnderAttack", actions.ShipUnderAttack)

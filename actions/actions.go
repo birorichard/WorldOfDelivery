@@ -6,17 +6,42 @@ import (
 	"net/http"
 
 	"github.com/birorichard/WorldOfDelivery/model"
+	"github.com/birorichard/WorldOfDelivery/service"
 )
 
 func ShipMovement(w http.ResponseWriter, r *http.Request) {
+	var dto model.ShipPositionDTO
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		handleBadRequest(w)
+	}
+	err = json.Unmarshal(bodyBytes, &dto)
+	if err != nil {
+		handleBadRequest(w)
+	}
+	go service.RegisterMove(&dto)
+
 	handleOkRequest(w)
 }
 
 func ShipReachedDestination(w http.ResponseWriter, r *http.Request) {
+	var dto model.ShipReachedDestinationDTO
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		handleBadRequest(w)
+	}
+	err = json.Unmarshal(bodyBytes, &dto)
+	if err != nil {
+		handleBadRequest(w)
+	}
+	go service.CloseRoute(&dto)
+
 	handleOkRequest(w)
+
 }
 
 func ShipLeavePort(w http.ResponseWriter, r *http.Request) {
+
 	var dto model.ShipLeavePortDTO
 	bodyBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -27,6 +52,8 @@ func ShipLeavePort(w http.ResponseWriter, r *http.Request) {
 		handleBadRequest(w)
 	}
 	// fmt.Println(dto.ShipPositionDTO, dto.DestinationPort)
+	go service.StartTrackingShip(&dto)
+
 	handleOkRequest(w)
 	w.Write(bodyBytes)
 }

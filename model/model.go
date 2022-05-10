@@ -28,3 +28,15 @@ type ExplosionDTO struct {
 	ShipsDestroyed int
 	MovesLeft      int
 }
+
+type Position struct {
+	X int
+	Y int
+}
+
+type ShipRoute struct {
+	SourcePortId      int
+	DestinationPortId int
+	Steps             []Position
+	Solved            bool
+}
