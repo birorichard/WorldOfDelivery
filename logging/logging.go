@@ -5,16 +5,24 @@ import (
 	"time"
 
 	"github.com/birorichard/WorldOfDelivery/counter"
+	"github.com/birorichard/WorldOfDelivery/services"
 )
 
-func StartRequestCountLogging() {
+func ConfigureLogging() {
 
 	for range time.Tick(time.Second) {
-		go logRequestCountToStdOut()
+		fmt.Println(getLogMessage())
 	}
 }
 
-func logRequestCountToStdOut() {
-	fmt.Println(counter.GetRequestCount(), " / second")
-	counter.Reset()
+func getLogMessage() string {
+	message := fmt.Sprintf(
+		"Elapsed time in seconds: %d | Request per seconds: %d | Routes found: %d",
+		*counter.ElapsedTimeInSecondsCounter.GetCurrentValue(),
+		*counter.RequestCounter.GetCurrentValue(),
+		services.GetFoundRoutesCount(),
+	)
+	counter.ElapsedTimeInSecondsCounter.Increment()
+	counter.RequestCounter.Reset()
+	return message
 }

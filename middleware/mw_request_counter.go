@@ -9,7 +9,7 @@ import (
 func CreateRequestCounterMiddleware(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		counter.Increment()
+		counter.RequestCounter.Increment()
 		next.ServeHTTP(w, r)
 	})
 }

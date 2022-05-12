@@ -23,3 +23,7 @@ func RadioHandler(r chi.Router) {
 func MissileHandler(r chi.Router) {
 	r.Post("/Explosion", actions.Explosion)
 }
+
+func ShipRouteHandler(r chi.Router) {
+	r.Get("/", actions.GetShipRoutes)
+}

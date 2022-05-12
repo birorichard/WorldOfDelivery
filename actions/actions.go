@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/birorichard/WorldOfDelivery/model"
-	"github.com/birorichard/WorldOfDelivery/service"
+	"github.com/birorichard/WorldOfDelivery/services"
 )
 
 func ShipMovement(w http.ResponseWriter, r *http.Request) {
@@ -19,7 +19,7 @@ func ShipMovement(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		handleBadRequest(w)
 	}
-	go service.RegisterMove(&dto)
+	go services.RegisterShipMovement(&dto)
 
 	handleOkRequest(w)
 }
@@ -34,7 +34,7 @@ func ShipReachedDestination(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		handleBadRequest(w)
 	}
-	go service.CloseRoute(&dto)
+	go services.EndShipTracking(&dto)
 
 	handleOkRequest(w)
 
@@ -51,11 +51,10 @@ func ShipLeavePort(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		handleBadRequest(w)
 	}
-	// fmt.Println(dto.ShipPositionDTO, dto.DestinationPort)
-	go service.StartTrackingShip(&dto)
+	go services.StartShipTracking(&dto)
 
 	handleOkRequest(w)
-	w.Write(bodyBytes)
+
 }
 
 func ShipUnderAttack(w http.ResponseWriter, r *http.Request) {
@@ -63,19 +62,7 @@ func ShipUnderAttack(w http.ResponseWriter, r *http.Request) {
 }
 
 func DiveComplete(w http.ResponseWriter, r *http.Request) {
-	var dto model.DiveCompleteDTO
-	bodyBytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		handleBadRequest(w)
-	}
-	err = json.Unmarshal(bodyBytes, &dto)
-	if err != nil {
-		handleBadRequest(w)
-	}
 	handleOkRequest(w)
-
-	w.Write(bodyBytes)
-
 }
 
 func ReachedLand(w http.ResponseWriter, r *http.Request) {
@@ -84,6 +71,19 @@ func ReachedLand(w http.ResponseWriter, r *http.Request) {
 
 func Explosion(w http.ResponseWriter, r *http.Request) {
 	handleOkRequest(w)
+}
+
+func GetShipRoutes(w http.ResponseWriter, r *http.Request) {
+	handleOkRequest(w)
+
+	fromCache := false
+
+	if r.URL.Query().Get("fromCache") == "true" {
+		fromCache = true
+	}
+	shipRoutes := services.GetShipRoutes(fromCache)
+	json.NewEncoder(w).Encode(shipRoutes)
+
 }
 
 func handleOkRequest(w http.ResponseWriter) {

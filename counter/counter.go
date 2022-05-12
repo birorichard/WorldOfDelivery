@@ -1,17 +1,30 @@
 ﻿package counter
 
-import "sync/atomic"
+import (
+	"sync/atomic"
+)
 
-var requestCount int64
+// type CounterInterface interface {
+// 	Increment(c Counter)
+// 	Reset(c Counter)
+// 	GetRequestCount(c Counter) *int64
+// }
 
-func Increment() {
-	atomic.AddInt64(&requestCount, 1)
+type Counter struct {
+	count int64
 }
 
-func Reset() {
-	atomic.StoreInt64(&requestCount, 0)
+func (c *Counter) Increment() {
+	atomic.AddInt64(&c.count, 1)
 }
 
-func GetRequestCount() int64 {
-	return requestCount
+func (c *Counter) Reset() {
+	atomic.StoreInt64(&c.count, 0)
 }
+
+func (c *Counter) GetCurrentValue() *int64 {
+	return &c.count
+}
+
+var RequestCounter = Counter{}
+var ElapsedTimeInSecondsCounter = Counter{}

@@ -21,53 +21,90 @@ func OpenDB() {
 }
 
 func CreateScheme() {
-	dbCreateQueries := []string{
+	queryString := []string{
 		`CREATE TABLE Routes (SourcePortId INT, DestinationPortId INT, PosX INT, PosY INT, StepOrder INT);`,
-		// `CREATE TABLE Routes (SourcePortId INT, DestinationPortId INT, PosX INT, PosY INT, StepOrder INT, PRIMARY KEY(SourcePortId, DestinationPortId));`,
 	}
 
-	for _, query := range dbCreateQueries {
+	for _, query := range queryString {
 		_, DbError = Database.Exec(query)
 		if DbError != nil {
-			fmt.Printf("SQL DB Create: Error: %s\n", DbError)
+			fmt.Printf("sql.Exec: Query: %s\nError: %s\n\n", queryString, DbError)
 		}
 	}
 }
 
-func AddRoute(dto *model.ShipRoute) {
-	sourceId := dto.SourcePortId
-	destinationId := dto.DestinationPortId
+func AddRoute(dto *model.ShipRouteCache) {
+	sourceId := dto.TableData.SourcePortId
+	destinationId := dto.TableData.DestinationPortId
 	queryString := "INSERT INTO Routes (SourcePortId, DestinationPortId, PosX, PosY, StepOrder) VALUES "
 	values := []string{}
-	for index, element := range dto.Steps {
+	for index, element := range dto.TableData.Steps {
 		values = append(values, (fmt.Sprintf("(%d, %d, %d, %d, %d)", sourceId, destinationId, element.X, element.Y, index)))
 	}
 
 	finalQuery := queryString + strings.Join(values[:], ", ")
 	_, DbError := Database.Exec(finalQuery)
 	if DbError != nil {
-		fmt.Printf("SQL DB AddRoute method: Error: %s\n", DbError)
+		fmt.Printf("sql.Exec: Query: %s\nError: %s\n\n", finalQuery, DbError)
 	}
 }
 
-func GetRoutes(portId int) {
-	query := `SELECT * FROM Routes WHERE SourcePortId = $1`
+func GetRoute(portId int, destinationPortId int) model.ShipRoute {
+	queryString := `SELECT PosX, PosY FROM Routes WHERE SourcePortId = $1 AND DestinationPortId = $2 ORDER BY StepOrder ASC`
 
-	rows, error := Database.Query(query, portId)
-	if error != nil {
-		fmt.Printf("sql.Exec: Error: %s\n", error)
+	rows, DbError := Database.Query(queryString, portId, destinationPortId)
+	if DbError != nil {
+		fmt.Printf("sql.Exec: Query: %s\nError: %s\n\n", queryString, DbError)
+	}
+	var steps []model.Position = make([]model.Position, 0)
+	for rows.Next() {
+		var posX int
+		var posY int
+		if DbError := rows.Scan(&posX, &posY); DbError != nil {
+			fmt.Printf("sql.Exec: Query: %s\nError: %s\n\n", queryString, DbError)
+		}
+
+		steps = append(steps, model.Position{X: posX, Y: posY})
 	}
 
+	return model.ShipRoute{SourcePortId: portId, DestinationPortId: destinationPortId, Steps: steps}
+
+}
+
+func GetAllRoutesFrom() []model.ShipRoute {
+	var routeDtos []model.ShipRoute = make([]model.ShipRoute, 0)
+	queryString := `SELECT SourcePortId, DestinationPortId, PosX, PosY, StepOrder FROM Routes ORDER BY SourcePortId, DestinationPortId, StepOrder ASC`
+
+	rows, DbError := Database.Query(queryString)
+	if DbError != nil {
+		fmt.Printf("sql.Exec: Query: %s\nError: %s\n\n", queryString, DbError)
+	}
+
+	previousPortId := -1
+	previousDestinationPortId := -1
+	steps := make([]model.Position, 0)
 	for rows.Next() {
-		var sourceId int
-		var destinationId int
+		var nextPortId int
+		var nextDestinationPortId int
 		var posX int
 		var posY int
 		var stepOrder int
 
-		if err := rows.Scan(&sourceId, &destinationId, &posX, &posY, &stepOrder); err != nil {
-			fmt.Printf("sql.Exec: Error: %s\n", err)
+		if DbError := rows.Scan(&nextPortId, &nextDestinationPortId, &posX, &posY, &stepOrder); DbError != nil {
+			fmt.Printf("sql.Exec: Query: %s\nError: %s\n\n", queryString, DbError)
 		}
-		fmt.Printf("%d, %d, %d, %d, %d\n", sourceId, destinationId, posX, posY, stepOrder)
+
+		if (previousPortId == -1 && previousDestinationPortId == -1) || previousPortId == nextPortId && previousDestinationPortId == nextDestinationPortId {
+			steps = append(steps, model.Position{X: posX, Y: posY, StepOrder: stepOrder})
+		} else {
+			routeDtos = append(routeDtos, model.ShipRoute{SourcePortId: previousPortId, DestinationPortId: previousDestinationPortId, Steps: steps})
+			steps = []model.Position{{X: posX, Y: posY, StepOrder: stepOrder}}
+		}
+
+		previousPortId = nextPortId
+		previousDestinationPortId = nextDestinationPortId
 	}
+
+	return routeDtos
+
 }

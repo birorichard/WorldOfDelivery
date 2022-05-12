@@ -30,13 +30,18 @@ type ExplosionDTO struct {
 }
 
 type Position struct {
-	X int
-	Y int
+	X         int
+	Y         int
+	StepOrder int
 }
 
 type ShipRoute struct {
 	SourcePortId      int
 	DestinationPortId int
 	Steps             []Position
-	Solved            bool
+}
+
+type ShipRouteCache struct {
+	TableData  ShipRoute
+	Discovered bool
 }
