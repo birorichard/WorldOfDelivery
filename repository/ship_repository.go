@@ -50,31 +50,6 @@ func AddRoute(dto *model.ShipRouteCache) {
 	}
 }
 
-// // Adds multiple ShipRouteCache instance to the database
-// func AddRouteRange(dtos *[]model.ShipRouteCache) {
-// 	var inserts []string
-
-// 	for _, cache := range *dtos {
-// 		sourceId := cache.TableData.SourcePortId
-// 		destinationId := cache.TableData.DestinationPortId
-// 		queryString := "INSERT INTO Routes (SourcePortId, DestinationPortId, PosX, PosY, StepOrder) VALUES "
-// 		values := []string{}
-// 		for index, element := range cache.TableData.Steps {
-// 			values = append(values, (fmt.Sprintf("(%d, %d, %d, %d, %d)", sourceId, destinationId, element.X, element.Y, index)))
-// 		}
-
-// 		finalQuery := queryString + strings.Join(values[:], ", ")
-// 		inserts = append(inserts, finalQuery)
-
-// 	}
-// 	for _, query := range inserts {
-// 		_, DbError = Database.Exec(query)
-// 		if DbError != nil {
-// 			fmt.Printf("sql.Exec: Query: %s\nError: %s\n\n", query, DbError)
-// 		}
-// 	}
-// }
-
 func GetRoute(portId int, destinationPortId int) model.ShipRouteDTO {
 	queryString := `SELECT PosX, PosY FROM Routes WHERE SourcePortId = $1 AND DestinationPortId = $2 ORDER BY StepOrder ASC`
 

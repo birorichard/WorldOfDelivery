@@ -13,10 +13,6 @@ func (d *DatabaseQueue) Add(routeCache *model.ShipRouteCache) {
 	d.cache <- *routeCache
 }
 
-// func (d *DatabaseQueue) IsEmpty() bool {
-// 	return len(d.cache) == 0
-// }
-
 func (d *DatabaseQueue) IsFull() bool {
 	return len(d.cache) == cap(d.cache)
 }

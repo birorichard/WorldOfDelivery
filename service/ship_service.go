@@ -7,7 +7,6 @@ import (
 	"github.com/birorichard/WorldOfDelivery/repository"
 )
 
-// TODO: ne legyen ugyanaz a nev mint a model-nek
 var RouteCache = map[string]model.ShipRouteCache{}
 
 var DbQueue = DatabaseQueue{}
