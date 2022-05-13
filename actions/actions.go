@@ -76,12 +76,7 @@ func Explosion(w http.ResponseWriter, r *http.Request) {
 func GetShipRoutes(w http.ResponseWriter, r *http.Request) {
 	handleOkRequest(w)
 
-	fromCache := false
-
-	if r.URL.Query().Get("fromCache") == "true" {
-		fromCache = true
-	}
-	shipRoutes := service.GetShipRoutes(fromCache)
+	shipRoutes := service.GetShipRoutes(r.URL.Query().Get("fromCache") == "true")
 	json.NewEncoder(w).Encode(shipRoutes)
 
 }
