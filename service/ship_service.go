@@ -1,6 +1,7 @@
 ﻿package service
 
 import (
+	"math"
 	"sync"
 
 	"github.com/birorichard/WorldOfDelivery/model"
@@ -37,9 +38,20 @@ func StartShipTracking(dto *model.ShipLeavePortDTO) {
 func RegisterShipMovement(dto *model.ShipPositionDTO) {
 	lock.Lock()
 	if route, ok := RouteCache[dto.ShipId]; ok {
-		if route.Discovered {
+		if route.Discovered || route.Canceled {
 			lock.Unlock()
 			return
+		}
+		if len(route.TableData.Steps) > 0 {
+			lastStep := route.TableData.Steps[len(route.TableData.Steps)-1]
+			if !isShipMovementValid(dto.ShipId, dto.X, dto.Y, lastStep.X, lastStep.Y) {
+				// CancelShipRoute(dto.ShipId)
+				// route.Canceled = true
+
+				// RouteCache[dto.ShipId] = route
+				lock.Unlock()
+				return
+			}
 		}
 		route.TableData.Steps = append(route.TableData.Steps, model.Position{X: dto.X, Y: dto.Y, StepOrder: len(route.TableData.Steps)})
 		RouteCache[dto.ShipId] = route
@@ -48,10 +60,54 @@ func RegisterShipMovement(dto *model.ShipPositionDTO) {
 	lock.Unlock()
 }
 
+func CancelShipRoute(shipId string) {
+	lock.Lock()
+	if route, ok := RouteCache[shipId]; ok {
+		route.Canceled = true
+		RouteCache[shipId] = route
+
+	}
+	lock.Unlock()
+}
+
+func isShipMovementValid(shipId string, PosX int, PosY int, PrevPosX int, PrevPosY int) bool {
+	if PrevPosX == PosX && math.Abs(float64(PrevPosY-PosY)) == 1 {
+		return true
+
+	}
+	if PrevPosY == PosY && math.Abs(float64(PrevPosX-PosX)) == 1 {
+		return true
+	}
+
+	if math.Abs(float64(PrevPosX-PosX)) == 1 && math.Abs(float64(PrevPosY-PosY)) == 1 {
+		return true
+	}
+
+	// route := RouteCache[shipId]
+	// route.Canceled = true
+
+	// RouteCache[shipId] = route
+	return false
+}
+
 func EndShipTracking(dto *model.ShipReachedDestinationDTO) {
 	lock.Lock()
 
 	if route, ok := RouteCache[dto.ShipId]; ok {
+		// if len(route.TableData.Steps) > 0 {
+		// 	lastStep := route.TableData.Steps[len(route.TableData.Steps)-1]
+		// 	fmt.Println(dto.ShipPositionDTO)
+		// 	fmt.Println(lastStep.X, ", ", lastStep.Y)
+		// 	fmt.Println("\n\n")
+		// 	if !isShipMovementValid(dto.ShipId, dto.ShipPositionDTO.X, dto.ShipPositionDTO.Y, lastStep.X, lastStep.Y) {
+		// 		// CancelShipRoute(dto.ShipId)
+		// 		// route.Canceled = true
+
+		// 		// RouteCache[dto.ShipId] = route
+		// 		lock.Unlock()
+		// 		return
+		// 	}
+		// }
 		route.Discovered = true
 		RouteCache[dto.ShipId] = route
 		lock.Unlock()

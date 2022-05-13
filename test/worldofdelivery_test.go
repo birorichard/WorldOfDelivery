@@ -1,24 +1,49 @@
-﻿package main
+﻿package test
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/birorichard/WorldOfDelivery/model"
-	"github.com/birorichard/WorldOfDelivery/repositories"
 	"github.com/birorichard/WorldOfDelivery/service"
 )
 
+var ShipIds = []string{"01CY1J41CYM2CDEPYKJRNQMGP9", "1133C91092E64F9EA9738A2B01", "1444B3A1E0864AFDB2D28B8BFE"}
+
+// func TestMain(m *testing.M) {
+// 	repository.OpenDB()
+// 	defer repository.Database.Close()
+// 	repository.CreateScheme()
+// 	go service.DbQueue.Start(5)
+// }
+
+// func BeforeEach() {
+// 	fmt.Print("before")
+// 	service.DbQueue.Reset()
+// 	repository.DropScheme()
+// }
+
+// func AfterEach() {
+// 	fmt.Print("after")
+
+// 	repository.CreateScheme()
+// }
+
+// func TestDatabasQueueAddsRoutesToTheDatabase(t *testing.T) {
+
+// }
+
 func TestShipLeavePort(t *testing.T) {
+	// defer repository.Database.Close()
 
-	repositories.OpenDB()
-	repositories.CreateScheme()
+	// repository.OpenDB()
+	// repository.CreateScheme()
 
-	var shipIds = []string{
-		"01CY1J41CYM2CDEPYKJRNQMGP9",
-		"1133C91092E64F9EA9738A2B01C",
-		"1444B3A1E0864AFDB2D28B8BFE",
-	}
+	service.DbQueue.Setup(50)
+
+	// service.DbQueue.Reset()
+	// repository.DropScheme()
+	var shipIds = []string{"01CY1J41CYM2CDEPYKJRNQMGP9", "1133C91092E64F9EA9738A2B01", "1444B3A1E0864AFDB2D28B8BFE"}
 
 	var shipLeavePorts = []model.ShipLeavePortDTO{
 		{
@@ -75,17 +100,30 @@ func TestShipLeavePort(t *testing.T) {
 		service.EndShipTracking(&element)
 	}
 
+	cica := service.DbQueue.GetSize()
+	fmt.Println(cica)
+	fmt.Println(service.RouteCache)
+
 	if len(service.RouteCache) != 3 {
 		t.Errorf("Not enough ships")
 	}
-	fmt.Println(repositories.GetRoute(2, 91))
+	// fmt.Println(repository.GetRoute(2, 91))
 
 }
 
-func UntrackedShipsShouldBeIgnored(t *testing.T) {
+// func TestUntrackedShipsShouldBeIgnored(t *testing.T) {
+// 	t.Error()
 
-}
+// }
 
-func RoutesAreInProperOrder(t *testing.T) {
+// func TestRouteStepsShouldBeInTheProperOrder(t *testing.T) {
 
-}
+// 	t.Fail()
+
+// }
+
+// func TestAllRoutesShouldBeStored(t *testing.T) {
+
+// 	t.Fail()
+
+// }

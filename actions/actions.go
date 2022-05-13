@@ -66,6 +66,17 @@ func DiveComplete(w http.ResponseWriter, r *http.Request) {
 }
 
 func ReachedLand(w http.ResponseWriter, r *http.Request) {
+	// var dto model.ShipPositionDTO
+	// bodyBytes, err := ioutil.ReadAll(r.Body)
+	// if err != nil {
+	// 	handleBadRequest(w)
+	// }
+	// err = json.Unmarshal(bodyBytes, &dto)
+	// if err != nil {
+	// 	handleBadRequest(w)
+	// }
+	// go service.CancelShipRoute(dto.ShipId)
+
 	handleOkRequest(w)
 }
 
@@ -74,18 +85,23 @@ func Explosion(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetShipRoutes(w http.ResponseWriter, r *http.Request) {
-	handleOkRequest(w)
-
+	enableCors(w)
 	shipRoutes := service.GetShipRoutes(r.URL.Query().Get("fromCache") == "true")
 	json.NewEncoder(w).Encode(shipRoutes)
+	handleOkRequest(w)
 
 }
 
 func handleOkRequest(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+
 }
 
 func handleBadRequest(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusBadRequest)
+
+}
+
+func enableCors(w http.ResponseWriter) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 }

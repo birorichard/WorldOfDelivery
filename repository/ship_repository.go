@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/birorichard/WorldOfDelivery/model"
+	_ "github.com/proullon/ramsql/driver"
 )
 
 var Database *sql.DB
@@ -23,6 +24,19 @@ func OpenDB() {
 func CreateScheme() {
 	queryString := []string{
 		`CREATE TABLE Routes (SourcePortId INT, DestinationPortId INT, PosX INT, PosY INT, StepOrder INT);`,
+	}
+
+	for _, query := range queryString {
+		_, DbError = Database.Exec(query)
+		if DbError != nil {
+			fmt.Printf("sql.Exec: Query: %s\nError: %s\n\n", query, DbError)
+		}
+	}
+}
+
+func DropScheme() {
+	queryString := []string{
+		`DROP TABLE Routes;`,
 	}
 
 	for _, query := range queryString {

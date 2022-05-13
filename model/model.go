@@ -38,4 +38,5 @@ type ShipRouteCache struct {
 	TableData  ShipRouteDTO
 	Discovered bool
 	ShipId     string
+	Canceled   bool
 }

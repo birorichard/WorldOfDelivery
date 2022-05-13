@@ -30,7 +30,8 @@ func main() {
 
 	go logging.ConfigureLogging()
 
-	go service.DbQueue.Start(5)
+	service.DbQueue.Setup(5)
+	go service.DbQueue.Start()
 
 	http.ListenAndServe(":8080", router)
 
