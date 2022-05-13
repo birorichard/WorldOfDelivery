@@ -6,7 +6,7 @@ import (
 
 	"github.com/birorichard/WorldOfDelivery/model"
 	"github.com/birorichard/WorldOfDelivery/repositories"
-	"github.com/birorichard/WorldOfDelivery/services"
+	"github.com/birorichard/WorldOfDelivery/service"
 )
 
 func TestShipLeavePort(t *testing.T) {
@@ -64,18 +64,18 @@ func TestShipLeavePort(t *testing.T) {
 	}
 
 	for _, element := range shipLeavePorts {
-		services.StartShipTracking(&element)
+		service.StartShipTracking(&element)
 	}
 
 	for _, element := range movements {
-		services.RegisterShipMovement(&element)
+		service.RegisterShipMovement(&element)
 	}
 
 	for _, element := range shipReachedDestinations {
-		services.EndShipTracking(&element)
+		service.EndShipTracking(&element)
 	}
 
-	if len(services.ShipRouteCache) != 3 {
+	if len(service.RouteCache) != 3 {
 		t.Errorf("Not enough ships")
 	}
 	fmt.Println(repositories.GetRoute(2, 91))

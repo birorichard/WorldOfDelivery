@@ -6,7 +6,8 @@ import (
 	"github.com/birorichard/WorldOfDelivery/handlers"
 	"github.com/birorichard/WorldOfDelivery/logging"
 	"github.com/birorichard/WorldOfDelivery/middleware"
-	"github.com/birorichard/WorldOfDelivery/repositories"
+	"github.com/birorichard/WorldOfDelivery/repository"
+	"github.com/birorichard/WorldOfDelivery/service"
 	"github.com/go-chi/chi/v5"
 
 	_ "github.com/proullon/ramsql/driver"
@@ -22,12 +23,14 @@ func main() {
 	router.Route("/missile", handlers.MissileHandler)
 	router.Route("/route", handlers.ShipRouteHandler)
 
-	defer repositories.Database.Close()
+	defer repository.Database.Close()
 
-	repositories.OpenDB()
-	repositories.CreateScheme()
+	repository.OpenDB()
+	repository.CreateScheme()
 
 	go logging.ConfigureLogging()
+
+	go service.DbQueue.Start(5)
 
 	http.ListenAndServe(":8080", router)
 

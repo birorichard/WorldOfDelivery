@@ -18,30 +18,24 @@ type ShipLeavePortDTO struct {
 	DestinationPort int
 }
 
-type DiveCompleteDTO struct {
-	ShipPositionDTO
-	Loot int
-}
-
-type ExplosionDTO struct {
-	ShipPositionDTO
-	ShipsDestroyed int
-	MovesLeft      int
-}
-
+// StepOrder-t torolni
 type Position struct {
 	X         int
 	Y         int
 	StepOrder int
 }
 
-type ShipRoute struct {
+// For API response
+type ShipRouteDTO struct {
 	SourcePortId      int
 	DestinationPortId int
 	Steps             []Position
+	Commited          bool
 }
 
+// Inner use for cache routes
 type ShipRouteCache struct {
-	TableData  ShipRoute
+	TableData  ShipRouteDTO
 	Discovered bool
+	ShipId     string
 }

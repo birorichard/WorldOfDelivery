@@ -1,4 +1,4 @@
-﻿package repositories
+﻿package repository
 
 import (
 	"database/sql"
@@ -28,11 +28,12 @@ func CreateScheme() {
 	for _, query := range queryString {
 		_, DbError = Database.Exec(query)
 		if DbError != nil {
-			fmt.Printf("sql.Exec: Query: %s\nError: %s\n\n", queryString, DbError)
+			fmt.Printf("sql.Exec: Query: %s\nError: %s\n\n", query, DbError)
 		}
 	}
 }
 
+// Adds one ShipRouteCache instance to the database
 func AddRoute(dto *model.ShipRouteCache) {
 	sourceId := dto.TableData.SourcePortId
 	destinationId := dto.TableData.DestinationPortId
@@ -49,7 +50,32 @@ func AddRoute(dto *model.ShipRouteCache) {
 	}
 }
 
-func GetRoute(portId int, destinationPortId int) model.ShipRoute {
+// // Adds multiple ShipRouteCache instance to the database
+// func AddRouteRange(dtos *[]model.ShipRouteCache) {
+// 	var inserts []string
+
+// 	for _, cache := range *dtos {
+// 		sourceId := cache.TableData.SourcePortId
+// 		destinationId := cache.TableData.DestinationPortId
+// 		queryString := "INSERT INTO Routes (SourcePortId, DestinationPortId, PosX, PosY, StepOrder) VALUES "
+// 		values := []string{}
+// 		for index, element := range cache.TableData.Steps {
+// 			values = append(values, (fmt.Sprintf("(%d, %d, %d, %d, %d)", sourceId, destinationId, element.X, element.Y, index)))
+// 		}
+
+// 		finalQuery := queryString + strings.Join(values[:], ", ")
+// 		inserts = append(inserts, finalQuery)
+
+// 	}
+// 	for _, query := range inserts {
+// 		_, DbError = Database.Exec(query)
+// 		if DbError != nil {
+// 			fmt.Printf("sql.Exec: Query: %s\nError: %s\n\n", query, DbError)
+// 		}
+// 	}
+// }
+
+func GetRoute(portId int, destinationPortId int) model.ShipRouteDTO {
 	queryString := `SELECT PosX, PosY FROM Routes WHERE SourcePortId = $1 AND DestinationPortId = $2 ORDER BY StepOrder ASC`
 
 	rows, DbError := Database.Query(queryString, portId, destinationPortId)
@@ -67,12 +93,12 @@ func GetRoute(portId int, destinationPortId int) model.ShipRoute {
 		steps = append(steps, model.Position{X: posX, Y: posY})
 	}
 
-	return model.ShipRoute{SourcePortId: portId, DestinationPortId: destinationPortId, Steps: steps}
+	return model.ShipRouteDTO{SourcePortId: portId, DestinationPortId: destinationPortId, Steps: steps}
 
 }
 
-func GetAllRoutesFrom() []model.ShipRoute {
-	var routeDtos []model.ShipRoute = make([]model.ShipRoute, 0)
+func GetAllRoutes() []model.ShipRouteDTO {
+	var routeDtos []model.ShipRouteDTO = make([]model.ShipRouteDTO, 0)
 	queryString := `SELECT SourcePortId, DestinationPortId, PosX, PosY, StepOrder FROM Routes ORDER BY SourcePortId, DestinationPortId, StepOrder ASC`
 
 	rows, DbError := Database.Query(queryString)
@@ -97,7 +123,7 @@ func GetAllRoutesFrom() []model.ShipRoute {
 		if (previousPortId == -1 && previousDestinationPortId == -1) || previousPortId == nextPortId && previousDestinationPortId == nextDestinationPortId {
 			steps = append(steps, model.Position{X: posX, Y: posY, StepOrder: stepOrder})
 		} else {
-			routeDtos = append(routeDtos, model.ShipRoute{SourcePortId: previousPortId, DestinationPortId: previousDestinationPortId, Steps: steps})
+			routeDtos = append(routeDtos, model.ShipRouteDTO{SourcePortId: previousPortId, DestinationPortId: previousDestinationPortId, Steps: steps, Commited: true})
 			steps = []model.Position{{X: posX, Y: posY, StepOrder: stepOrder}}
 		}
 

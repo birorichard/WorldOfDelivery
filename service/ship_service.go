@@ -1,13 +1,16 @@
-﻿package services
+﻿package service
 
 import (
 	"sync"
 
 	"github.com/birorichard/WorldOfDelivery/model"
-	"github.com/birorichard/WorldOfDelivery/repositories"
+	"github.com/birorichard/WorldOfDelivery/repository"
 )
 
-var ShipRouteCache = map[string]model.ShipRouteCache{}
+// TODO: ne legyen ugyanaz a nev mint a model-nek
+var RouteCache = map[string]model.ShipRouteCache{}
+
+var DbQueue = DatabaseQueue{}
 
 var lock = sync.RWMutex{}
 
@@ -18,25 +21,29 @@ func StartShipTracking(dto *model.ShipLeavePortDTO) {
 
 	lock.Lock()
 	defer lock.Unlock()
-	ShipRouteCache[dto.ShipId] = model.ShipRouteCache{
-		TableData: model.ShipRoute{
+	route := model.ShipRouteCache{
+		TableData: model.ShipRouteDTO{
 			SourcePortId:      dto.PortId,
 			DestinationPortId: dto.DestinationPort,
 			Steps:             []model.Position{},
+			Commited:          false,
 		},
 		Discovered: false,
+		ShipId:     dto.ShipId,
 	}
+
+	RouteCache[dto.ShipId] = route
 }
 
 func RegisterShipMovement(dto *model.ShipPositionDTO) {
 	lock.Lock()
-	if route, ok := ShipRouteCache[dto.ShipId]; ok {
+	if route, ok := RouteCache[dto.ShipId]; ok {
 		if route.Discovered {
 			lock.Unlock()
 			return
 		}
 		route.TableData.Steps = append(route.TableData.Steps, model.Position{X: dto.X, Y: dto.Y, StepOrder: len(route.TableData.Steps)})
-		ShipRouteCache[dto.ShipId] = route
+		RouteCache[dto.ShipId] = route
 
 	}
 	lock.Unlock()
@@ -45,11 +52,11 @@ func RegisterShipMovement(dto *model.ShipPositionDTO) {
 func EndShipTracking(dto *model.ShipReachedDestinationDTO) {
 	lock.Lock()
 
-	if route, ok := ShipRouteCache[dto.ShipId]; ok {
+	if route, ok := RouteCache[dto.ShipId]; ok {
 		route.Discovered = true
-		ShipRouteCache[dto.ShipId] = route
+		RouteCache[dto.ShipId] = route
 		lock.Unlock()
-		repositories.AddRoute(&route)
+		DbQueue.Add(&route)
 	} else {
 		lock.Unlock()
 	}
@@ -59,7 +66,7 @@ func GetFoundRoutesCount() int {
 	var count int
 	lock.RLock()
 	defer lock.RUnlock()
-	for _, v := range ShipRouteCache {
+	for _, v := range RouteCache {
 		if v.Discovered {
 			count++
 		}
@@ -68,26 +75,21 @@ func GetFoundRoutesCount() int {
 	return count
 }
 
-func GetShipRoutes(fromCache bool) []model.ShipRoute {
+func GetShipRoutes(fromCache bool) []model.ShipRouteDTO {
 	if fromCache {
 		return getRouteDtosFromCache()
 	} else {
-		return repositories.GetAllRoutesFrom()
+		return repository.GetAllRoutes()
 	}
 
 }
 
-func getRouteDtosFromCache() []model.ShipRoute {
-	var routeDtos []model.ShipRoute = make([]model.ShipRoute, 0)
+func getRouteDtosFromCache() []model.ShipRouteDTO {
+	var routeDtos []model.ShipRouteDTO = make([]model.ShipRouteDTO, 0)
 
-	for _, route := range ShipRouteCache {
+	for _, route := range RouteCache {
 		if route.Discovered {
-			routeDtos = append(routeDtos, model.ShipRoute{SourcePortId: route.TableData.SourcePortId, DestinationPortId: route.TableData.DestinationPortId, Steps: route.TableData.Steps})
-
-			// for stepIndex, step := range route.TableData.Steps {
-			// 	routeDtos = append(routeDtos, model.ShipRoute{SourcePortId: route.TableData.SourcePortId, DestinationPortId: route.TableData.DestinationPortId, PositionX: step.X, PositionY: step.Y, StepOrder: stepIndex})
-
-			// }
+			routeDtos = append(routeDtos, model.ShipRouteDTO{SourcePortId: route.TableData.SourcePortId, DestinationPortId: route.TableData.DestinationPortId, Steps: route.TableData.Steps, Commited: route.TableData.Commited})
 		}
 	}
 
@@ -96,14 +98,14 @@ func getRouteDtosFromCache() []model.ShipRoute {
 
 func isTheRouteAlreadyDiscovered(sourcePortId *int, destinationPortId *int) bool {
 
-	if len(ShipRouteCache) == 0 {
+	if len(RouteCache) == 0 {
 		return false
 	}
 
 	lock.RLock()
 	defer lock.RUnlock()
 
-	for _, element := range ShipRouteCache {
+	for _, element := range RouteCache {
 		if element.TableData.SourcePortId == *sourcePortId && element.TableData.DestinationPortId == *destinationPortId && element.Discovered {
 			return true
 		}
@@ -116,7 +118,7 @@ func isTheRouteBeingFollowed(sourcePortId *int, destinationPortId *int) bool {
 	lock.RLock()
 	defer lock.RUnlock()
 
-	for _, element := range ShipRouteCache {
+	for _, element := range RouteCache {
 		if element.TableData.SourcePortId == *sourcePortId && element.TableData.DestinationPortId == *destinationPortId {
 			return true
 		}

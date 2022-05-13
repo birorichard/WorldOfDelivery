@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/birorichard/WorldOfDelivery/model"
-	"github.com/birorichard/WorldOfDelivery/services"
+	"github.com/birorichard/WorldOfDelivery/service"
 )
 
 func ShipMovement(w http.ResponseWriter, r *http.Request) {
@@ -19,7 +19,7 @@ func ShipMovement(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		handleBadRequest(w)
 	}
-	go services.RegisterShipMovement(&dto)
+	go service.RegisterShipMovement(&dto)
 
 	handleOkRequest(w)
 }
@@ -34,7 +34,7 @@ func ShipReachedDestination(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		handleBadRequest(w)
 	}
-	go services.EndShipTracking(&dto)
+	go service.EndShipTracking(&dto)
 
 	handleOkRequest(w)
 
@@ -51,7 +51,7 @@ func ShipLeavePort(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		handleBadRequest(w)
 	}
-	go services.StartShipTracking(&dto)
+	go service.StartShipTracking(&dto)
 
 	handleOkRequest(w)
 
@@ -81,7 +81,7 @@ func GetShipRoutes(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Query().Get("fromCache") == "true" {
 		fromCache = true
 	}
-	shipRoutes := services.GetShipRoutes(fromCache)
+	shipRoutes := service.GetShipRoutes(fromCache)
 	json.NewEncoder(w).Encode(shipRoutes)
 
 }

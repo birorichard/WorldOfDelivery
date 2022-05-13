@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/birorichard/WorldOfDelivery/counter"
-	"github.com/birorichard/WorldOfDelivery/services"
+	"github.com/birorichard/WorldOfDelivery/service"
 )
 
 func ConfigureLogging() {
@@ -20,7 +20,7 @@ func getLogMessage() string {
 		"Elapsed time in seconds: %d | Request per seconds: %d | Routes found: %d",
 		*counter.ElapsedTimeInSecondsCounter.GetCurrentValue(),
 		*counter.RequestCounter.GetCurrentValue(),
-		services.GetFoundRoutesCount(),
+		service.GetFoundRoutesCount(),
 	)
 	counter.ElapsedTimeInSecondsCounter.Increment()
 	counter.RequestCounter.Reset()
