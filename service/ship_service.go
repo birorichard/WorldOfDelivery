@@ -65,6 +65,7 @@ func EndShipTracking(dto *model.ShipReachedDestinationDTO) {
 
 	if route, ok := RouteCache[dto.ShipId]; ok {
 		if !validation.IsReachingDestinationValid(&route, dto) {
+			lock.Unlock()
 			return
 		}
 

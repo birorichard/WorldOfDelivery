@@ -60,7 +60,7 @@ func TestStartShipTrackingShouldAddRouteWithProperShipId(t *testing.T) {
 	cachedRoute := RouteCache[test_data.TestShipIds[0]]
 
 	if cachedRoute.ShipId != test_data.TestShipIds[0] {
-		t.Fatal("The route has been added with wron ship id.")
+		t.Fatal("The route has been added with wrong ship id.")
 	}
 }
 
@@ -143,4 +143,216 @@ func TestStartShipTrackingShouldIgnoreIfTheShipIsAlreadyTracked(t *testing.T) {
 	}
 }
 
-// func TestRegisterShipMovementShouldIgnoreDiscoveredRoutes
+func TestRegisterShipMovementShouldIgnoreFromShipWhoseRouteIsAlreadyDiscovered(t *testing.T) {
+	RouteCache = map[string]model.ShipRouteCache{}
+
+	leavePortDto := model.ShipLeavePortDTO{
+		ShipPositionDTO: model.ShipPositionDTO{
+			ShipId: test_data.TestShipIds[0],
+		},
+		PortId:          23,
+		DestinationPort: 95,
+	}
+
+	shipPositionDtos := []model.ShipPositionDTO{
+		{
+			ShipId: test_data.TestShipIds[0],
+			X:      5,
+			Y:      9,
+		},
+		{
+			ShipId: test_data.TestShipIds[0],
+			X:      6,
+			Y:      9,
+		},
+	}
+
+	StartShipTracking(&leavePortDto)
+	for _, position := range shipPositionDtos {
+		RegisterShipMovement(&position)
+	}
+
+	route := RouteCache[test_data.TestShipIds[0]]
+	route.Discovered = true
+	RouteCache[test_data.TestShipIds[0]] = route
+
+	RegisterShipMovement(&model.ShipPositionDTO{
+		ShipId: test_data.TestShipIds[0],
+		X:      6,
+		Y:      10,
+	})
+
+	route = RouteCache[test_data.TestShipIds[0]]
+	if len(route.TableData.Steps) > 2 {
+		t.Fatal("Discovered route's step wasn't ignored.")
+	}
+}
+
+func TestRegisterShipMovementShouldUpdateTheTableSize(t *testing.T) {
+	RouteCache = map[string]model.ShipRouteCache{}
+
+	tableSize.X = 300
+	tableSize.Y = 500
+
+	leavePortDto := model.ShipLeavePortDTO{
+		ShipPositionDTO: model.ShipPositionDTO{
+			ShipId: test_data.TestShipIds[0],
+		},
+		PortId:          23,
+		DestinationPort: 95,
+	}
+
+	shipPositionDto := model.ShipPositionDTO{
+		ShipId: test_data.TestShipIds[0],
+		X:      670,
+		Y:      512,
+	}
+
+	StartShipTracking(&leavePortDto)
+	RegisterShipMovement(&shipPositionDto)
+
+	if tableSize.X != 670 || tableSize.Y != 512 {
+		t.Fatal("Table size wasn't updated.")
+	}
+}
+
+func TestRegisterEndShipTrackingShouldSetTheRouteAsDiscovered(t *testing.T) {
+	DbQueue = DatabaseQueue{}
+	DbQueue.Setup(50)
+
+	RouteCache = map[string]model.ShipRouteCache{}
+
+	leavePortDto := model.ShipLeavePortDTO{
+		ShipPositionDTO: model.ShipPositionDTO{
+			ShipId: test_data.TestShipIds[0],
+		},
+		PortId:          23,
+		DestinationPort: 95,
+	}
+
+	shipPositionDto := model.ShipPositionDTO{
+		ShipId: test_data.TestShipIds[0],
+		X:      670,
+		Y:      512,
+	}
+
+	shipDestinationReachedDto := model.ShipReachedDestinationDTO{
+		ShipPositionDTO: model.ShipPositionDTO{
+			ShipId: test_data.TestShipIds[0],
+			X:      670,
+			Y:      512,
+		},
+		PortId:  95,
+		Payment: 10,
+	}
+
+	StartShipTracking(&leavePortDto)
+	RegisterShipMovement(&shipPositionDto)
+	EndShipTracking(&shipDestinationReachedDto)
+
+	route := RouteCache[test_data.TestShipIds[0]]
+
+	if !route.Discovered {
+		t.Fatal("Finished route wasn't marked as discovered.")
+	}
+}
+
+func TestRegisterEndShipTrackingShouldAddTheRouteToTheQueue(t *testing.T) {
+	DbQueue = DatabaseQueue{}
+	DbQueue.Setup(50)
+
+	RouteCache = map[string]model.ShipRouteCache{}
+
+	leavePortDto := model.ShipLeavePortDTO{
+		ShipPositionDTO: model.ShipPositionDTO{
+			ShipId: test_data.TestShipIds[0],
+		},
+		PortId:          23,
+		DestinationPort: 95,
+	}
+
+	shipPositionDto := model.ShipPositionDTO{
+		ShipId: test_data.TestShipIds[0],
+		X:      670,
+		Y:      512,
+	}
+
+	shipDestinationReachedDto := model.ShipReachedDestinationDTO{
+		ShipPositionDTO: model.ShipPositionDTO{
+			ShipId: test_data.TestShipIds[0],
+			X:      670,
+			Y:      512,
+		},
+		PortId:  95,
+		Payment: 10,
+	}
+
+	StartShipTracking(&leavePortDto)
+	RegisterShipMovement(&shipPositionDto)
+	EndShipTracking(&shipDestinationReachedDto)
+
+	if DbQueue.GetSize() != 1 {
+		t.Fatal("Finished route wasn't added to the Db queue.")
+	}
+}
+
+func TestGetFoundRoutesCountShouldCountOnlyDiscoveredRoutes(t *testing.T) {
+	RouteCache = map[string]model.ShipRouteCache{}
+
+	RouteCache[test_data.TestShipIds[0]] = model.ShipRouteCache{
+		TableData: model.ShipRouteDTO{
+			SourcePortId:      6,
+			DestinationPortId: 90,
+			Steps: []model.Position{
+				{X: 3, Y: 3, StepOrder: 0},
+				{X: 3, Y: 4, StepOrder: 1},
+				{X: 3, Y: 5, StepOrder: 2},
+				{X: 3, Y: 6, StepOrder: 3},
+			},
+			Commited: false,
+		},
+		PlannedDestinationPortId: 90,
+		Discovered:               true,
+		ShipId:                   test_data.TestShipIds[0],
+	}
+
+	RouteCache[test_data.TestShipIds[1]] = model.ShipRouteCache{
+		TableData: model.ShipRouteDTO{
+			SourcePortId:      3,
+			DestinationPortId: 11,
+			Steps: []model.Position{
+				{X: 23, Y: 3, StepOrder: 0},
+				{X: 23, Y: 4, StepOrder: 1},
+				{X: 23, Y: 5, StepOrder: 2},
+				{X: 23, Y: 6, StepOrder: 3},
+			},
+			Commited: false,
+		},
+		PlannedDestinationPortId: 11,
+		Discovered:               true,
+		ShipId:                   test_data.TestShipIds[1],
+	}
+
+	RouteCache[test_data.TestShipIds[2]] = model.ShipRouteCache{
+		TableData: model.ShipRouteDTO{
+			SourcePortId:      4,
+			DestinationPortId: 23,
+			Steps: []model.Position{
+				{X: 13, Y: 3, StepOrder: 0},
+				{X: 13, Y: 4, StepOrder: 1},
+				{X: 13, Y: 5, StepOrder: 2},
+				{X: 13, Y: 6, StepOrder: 3},
+			},
+			Commited: false,
+		},
+		PlannedDestinationPortId: 23,
+		Discovered:               false,
+		ShipId:                   test_data.TestShipIds[2],
+	}
+
+	discoveredRouteCount := GetFoundRoutesCount()
+
+	if discoveredRouteCount != 2 {
+		t.Fatal("Wrong count of discovered routes.")
+	}
+}

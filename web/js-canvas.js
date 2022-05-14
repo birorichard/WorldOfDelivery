@@ -1,13 +1,15 @@
-// fetch('http://localhost:8080/route?fromCache=true', {method: 'GET', mode: 'no-cors', cache: 'no-cache'})
-// , headers: { 'Access-Control-Allow-Origin': '*', 'Host': 'localhost:8080', 'Accept': '*/*', 'User-Agent': 'PostmanRuntime/7.28.4'}, 'Origin': 'localhost'}
-// 
-fetch('http://localhost:8080/route?fromCache=true', {method: 'GET', mode: 'cors', cache: 'no-cache', headers: {'Origin': 'http://localhost:8080'}})
+fetch('http://localhost:8080/route?fromCache=true', {method: 'GET', mode: 'cors', cache: 'no-cache'})
 .then(response => {
    return response.json();
 })
 .then(routesdata => {
-	var c = document.getElementById("main-water");
-	var ctx = c.getContext("2d");
+	var canvas = document.getElementById("main-water");
+	var x_size = routesdata["TableSize"]["X"];
+	var y_size = routesdata["TableSize"]["Y"];
+	canvas.width = x_size;
+	canvas.height = y_size;
+	
+	var ctx = canvas.getContext("2d");
 	for (route_index = 0; route_index < routesdata["Routes"].length; route_index++) {
 		var route_steps = routesdata["Routes"][route_index]["Steps"];
 		var route_step_count = route_steps.length;

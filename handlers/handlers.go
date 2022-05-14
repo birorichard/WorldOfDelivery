@@ -7,6 +7,7 @@ import (
 )
 
 func ShipHandler(r chi.Router) {
+
 	r.Use(middleware.CreateRequestCounterMiddleware)
 	r.Post("/DiveComplete", actions.DiveComplete)
 	r.Post("/ReachedLand", actions.ReachedLand)
