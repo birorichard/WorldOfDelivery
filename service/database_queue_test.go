@@ -44,7 +44,7 @@ func TestAddShouldAddTheRouteToTheQueue(t *testing.T) {
 				{X: 3, Y: 5, StepOrder: 2},
 				{X: 3, Y: 6, StepOrder: 3},
 			},
-			Commited: false,
+			Committed: false,
 		},
 		PlannedDestinationPortId: 23,
 		Discovered:               false,
@@ -58,7 +58,7 @@ func TestAddShouldAddTheRouteToTheQueue(t *testing.T) {
 	}
 }
 
-func TestInsertIntoTheDBFroMQueueShouldMarkRouteAsCommitedInCache(t *testing.T) {
+func TestInsertIntoTheDBFromQueueShouldMarkRouteAsCommittedInCache(t *testing.T) {
 	repository.OpenDB()
 	repository.CreateScheme()
 
@@ -75,7 +75,7 @@ func TestInsertIntoTheDBFroMQueueShouldMarkRouteAsCommitedInCache(t *testing.T) 
 				{X: 3, Y: 5, StepOrder: 2},
 				{X: 3, Y: 6, StepOrder: 3},
 			},
-			Commited: false,
+			Committed: false,
 		},
 		PlannedDestinationPortId: 23,
 		Discovered:               false,
@@ -86,8 +86,8 @@ func TestInsertIntoTheDBFroMQueueShouldMarkRouteAsCommitedInCache(t *testing.T) 
 
 	element := RouteCache[test_data.TestShipIds[0]]
 
-	if !element.TableData.Commited {
-		t.Fatal("The RouteCache wasn't marked as commited.")
+	if !element.TableData.Committed {
+		t.Fatal("The RouteCache wasn't marked as committed.")
 	}
 
 	wipeDb()

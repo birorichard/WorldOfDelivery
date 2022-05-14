@@ -18,7 +18,7 @@ func TestStartShipTrackingShouldAddNewRouteToTheCache(t *testing.T) {
 				{X: 23, Y: 5, StepOrder: 2},
 				{X: 23, Y: 6, StepOrder: 3},
 			},
-			Commited: false,
+			Committed: false,
 		},
 		PlannedDestinationPortId: 12,
 		Discovered:               true,

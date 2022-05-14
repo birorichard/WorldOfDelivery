@@ -64,7 +64,7 @@ func TestStartShipTrackingShouldAddRouteWithProperShipId(t *testing.T) {
 	}
 }
 
-func TestStartShipTrackingShouldAddAsUncommited(t *testing.T) {
+func TestStartShipTrackingShouldAddAsUncommitted(t *testing.T) {
 	RouteCache = map[string]model.ShipRouteCache{}
 
 	leavePortDto := model.ShipLeavePortDTO{
@@ -78,8 +78,8 @@ func TestStartShipTrackingShouldAddAsUncommited(t *testing.T) {
 	StartShipTracking(&leavePortDto)
 	cachedRoute := RouteCache[test_data.TestShipIds[0]]
 
-	if cachedRoute.TableData.Commited {
-		t.Fatal("The route has been added as commited to the cache.")
+	if cachedRoute.TableData.Committed {
+		t.Fatal("The route has been added as committed to the cache.")
 	}
 }
 
@@ -309,7 +309,7 @@ func TestGetFoundRoutesCountShouldCountOnlyDiscoveredRoutes(t *testing.T) {
 				{X: 3, Y: 5, StepOrder: 2},
 				{X: 3, Y: 6, StepOrder: 3},
 			},
-			Commited: false,
+			Committed: false,
 		},
 		PlannedDestinationPortId: 90,
 		Discovered:               true,
@@ -326,7 +326,7 @@ func TestGetFoundRoutesCountShouldCountOnlyDiscoveredRoutes(t *testing.T) {
 				{X: 23, Y: 5, StepOrder: 2},
 				{X: 23, Y: 6, StepOrder: 3},
 			},
-			Commited: false,
+			Committed: false,
 		},
 		PlannedDestinationPortId: 11,
 		Discovered:               true,
@@ -343,7 +343,7 @@ func TestGetFoundRoutesCountShouldCountOnlyDiscoveredRoutes(t *testing.T) {
 				{X: 13, Y: 5, StepOrder: 2},
 				{X: 13, Y: 6, StepOrder: 3},
 			},
-			Commited: false,
+			Committed: false,
 		},
 		PlannedDestinationPortId: 23,
 		Discovered:               false,

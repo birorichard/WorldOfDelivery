@@ -43,7 +43,7 @@ func (d *DatabaseQueue) addRoute(route *model.ShipRouteCache) {
 	repository.AddRoute(route)
 	lock.Lock()
 	cachedRoute := RouteCache[route.ShipId]
-	cachedRoute.TableData.Commited = true
+	cachedRoute.TableData.Committed = true
 	RouteCache[route.ShipId] = cachedRoute
 	lock.Unlock()
 }

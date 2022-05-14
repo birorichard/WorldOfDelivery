@@ -30,7 +30,7 @@ type ShipRouteDTO struct {
 	SourcePortId      int
 	DestinationPortId int
 	Steps             []Position
-	Commited          bool
+	Committed         bool
 }
 
 // Inner use for cache routes

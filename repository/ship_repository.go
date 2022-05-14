@@ -90,7 +90,7 @@ func GetAllRoutes() []model.ShipRouteDTO {
 		if (previousPortId == -1 && previousDestinationPortId == -1) || previousPortId == nextPortId && previousDestinationPortId == nextDestinationPortId {
 			steps = append(steps, model.Position{X: posX, Y: posY, StepOrder: stepOrder})
 		} else {
-			routeDtos = append(routeDtos, model.ShipRouteDTO{SourcePortId: previousPortId, DestinationPortId: previousDestinationPortId, Steps: steps, Commited: true})
+			routeDtos = append(routeDtos, model.ShipRouteDTO{SourcePortId: previousPortId, DestinationPortId: previousDestinationPortId, Steps: steps, Committed: true})
 			steps = []model.Position{{X: posX, Y: posY, StepOrder: stepOrder}}
 		}
 

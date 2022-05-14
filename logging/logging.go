@@ -17,7 +17,7 @@ func ConfigureLogging() {
 
 func getLogMessage() string {
 	message := fmt.Sprintf(
-		"Elapsed time in seconds: %d | Request per seconds: %d | Routes found: %d",
+		"Elapsed time in seconds: %d | Request per second: %d | Routes found: %d",
 		*counter.ElapsedTimeInSecondsCounter.GetCurrentValue(),
 		*counter.RequestCounter.GetCurrentValue(),
 		service.GetFoundRoutesCount(),

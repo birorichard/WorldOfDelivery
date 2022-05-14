@@ -29,7 +29,7 @@ func StartShipTracking(dto *model.ShipLeavePortDTO) {
 			SourcePortId:      dto.PortId,
 			DestinationPortId: dto.DestinationPort,
 			Steps:             []model.Position{},
-			Commited:          false,
+			Committed:         false,
 		},
 		Discovered:               false,
 		ShipId:                   dto.ShipId,
@@ -78,7 +78,7 @@ func EndShipTracking(dto *model.ShipReachedDestinationDTO) {
 	}
 }
 
-// Returns the count of the routes that already found
+// Returns the count of the routes that already have been found
 func GetFoundRoutesCount() int {
 	var count int
 	lock.RLock()
@@ -104,13 +104,12 @@ func GetShipRoutes(fromCache bool) model.GetAllRoutesResponseDTO {
 	return model.GetAllRoutesResponseDTO{TableSize: model.TableSize{X: int(math.Ceil(float64(tableSize.X) * 1.02)), Y: int(math.Ceil(float64(tableSize.Y) * 1.02))}, Routes: routes}
 }
 
-// Maps the routes from type that used for cache to API response
 func getRouteDtosFromCache() []model.ShipRouteDTO {
 	var routeDtos []model.ShipRouteDTO = make([]model.ShipRouteDTO, 0)
 
 	for _, route := range RouteCache {
 		if route.Discovered {
-			routeDtos = append(routeDtos, model.ShipRouteDTO{SourcePortId: route.TableData.SourcePortId, DestinationPortId: route.TableData.DestinationPortId, Steps: route.TableData.Steps, Commited: route.TableData.Commited})
+			routeDtos = append(routeDtos, model.ShipRouteDTO{SourcePortId: route.TableData.SourcePortId, DestinationPortId: route.TableData.DestinationPortId, Steps: route.TableData.Steps, Committed: route.TableData.Committed})
 		}
 	}
 

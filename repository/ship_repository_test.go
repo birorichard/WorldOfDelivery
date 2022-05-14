@@ -46,7 +46,7 @@ func TestAddRouteAddsRoute(t *testing.T) {
 				{X: 3, Y: 5, StepOrder: 2},
 				{X: 3, Y: 6, StepOrder: 3},
 			},
-			Commited: false,
+			Committed: false,
 		},
 		PlannedDestinationPortId: 23,
 		Discovered:               false,
@@ -95,7 +95,7 @@ func TestGetRouteReturnsTheProperRoute(t *testing.T) {
 	routeDto := GetRoute(2, 5)
 
 	if routeDto.SourcePortId != 2 || routeDto.DestinationPortId != 5 {
-		t.Fatal("GetRoute didn't returns the proper route object")
+		t.Fatal("GetRoute didn't return the proper route object")
 	}
 	wipeDb()
 }
