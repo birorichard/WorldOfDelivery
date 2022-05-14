@@ -29,13 +29,11 @@ func TestSchemeSuccesfullyCreated(t *testing.T) {
 	_, err := Database.Exec(queryString)
 	common.HandleErrorForTesting(t, err, fmt.Sprintf("sql.Exec: Query: %s", queryString))
 	wipeDb()
-	Database.Close()
 }
 
 func TestAddRouteAddsRoute(t *testing.T) {
 
 	OpenDB()
-
 	CreateScheme()
 
 	entity := model.ShipRouteCache{
@@ -81,13 +79,11 @@ func TestAddRouteAddsRoute(t *testing.T) {
 
 	}
 	wipeDb()
-	Database.Close()
 }
 
 func TestGetRouteReturnsTheProperRoute(t *testing.T) {
 
 	OpenDB()
-
 	CreateScheme()
 
 	queryString := `INSERT INTO Route (SourcePortId, DestinationPortId, PosX, PosY, StepOrder) VALUES 
@@ -102,5 +98,4 @@ func TestGetRouteReturnsTheProperRoute(t *testing.T) {
 		t.Fatal("GetRoute didn't returns the proper route object")
 	}
 	wipeDb()
-	Database.Close()
 }

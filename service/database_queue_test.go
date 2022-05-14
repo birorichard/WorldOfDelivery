@@ -6,6 +6,7 @@ import (
 	"github.com/birorichard/WorldOfDelivery/common"
 	"github.com/birorichard/WorldOfDelivery/model"
 	"github.com/birorichard/WorldOfDelivery/repository"
+	"github.com/birorichard/WorldOfDelivery/test_data"
 )
 
 func wipeDb() {
@@ -17,12 +18,6 @@ func wipeDb() {
 		_, err = repository.Database.Exec(query)
 		common.HandleError(err, "Drop scheme failed")
 	}
-}
-
-var testShipIds = []string{"01CY1J41CYM2CDEPYKJRNQMGP9", "1133C91092E64F9EA9738A2B01", "1444B3A1E0864AFDB2D28B8BFE"}
-
-func Test(t *testing.T) {
-	t.Error()
 }
 
 func TestSetupMakesTheProperSizeBuffer(t *testing.T) {
@@ -53,7 +48,7 @@ func TestAddShouldAddTheRouteToTheQueue(t *testing.T) {
 		},
 		PlannedDestinationPortId: 23,
 		Discovered:               false,
-		ShipId:                   testShipIds[0],
+		ShipId:                   test_data.TestShipIds[0],
 	}
 
 	queue.Add(&routeCache)
@@ -84,12 +79,12 @@ func TestInsertIntoTheDBFroMQueueShouldMarkRouteAsCommitedInCache(t *testing.T) 
 		},
 		PlannedDestinationPortId: 23,
 		Discovered:               false,
-		ShipId:                   testShipIds[0],
+		ShipId:                   test_data.TestShipIds[0],
 	}
 
 	queue.addRoute(&routeCache)
 
-	element := RouteCache[testShipIds[0]]
+	element := RouteCache[test_data.TestShipIds[0]]
 
 	if !element.TableData.Commited {
 		t.Fatal("The RouteCache wasn't marked as commited.")
