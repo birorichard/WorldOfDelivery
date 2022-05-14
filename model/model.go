@@ -25,7 +25,7 @@ type Position struct {
 	StepOrder int
 }
 
-// For API response
+// For response
 type ShipRouteDTO struct {
 	SourcePortId      int
 	DestinationPortId int
@@ -49,4 +49,13 @@ type TableSize struct {
 type GetAllRoutesResponseDTO struct {
 	TableSize TableSize
 	Routes    []ShipRouteDTO
+}
+
+type RouteEntity struct {
+	ID                int
+	SourcePortId      int
+	DestinationPortId int
+	PosX              int
+	PosY              int
+	StepOrder         int
 }

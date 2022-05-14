@@ -42,7 +42,7 @@ func StartShipTracking(dto *model.ShipLeavePortDTO) {
 func RegisterShipMovement(dto *model.ShipPositionDTO) {
 	lock.Lock()
 	if route, ok := RouteCache[dto.ShipId]; ok {
-		if route.Discovered || route.Canceled {
+		if route.Discovered {
 			lock.Unlock()
 			return
 		}

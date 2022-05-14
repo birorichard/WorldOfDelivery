@@ -74,21 +74,26 @@ func Explosion(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetShipRoutes(w http.ResponseWriter, r *http.Request) {
+	setContentType(w)
 	enableCors(w)
+
 	shipRoutes := service.GetShipRoutes(r.URL.Query().Get("fromCache") == "true")
 	json.NewEncoder(w).Encode(shipRoutes)
-	handleOkRequest(w)
 
 }
 
 func handleOkRequest(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 
 }
 
 func handleBadRequest(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusBadRequest)
 
+}
+
+func setContentType(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
 }
 
 func enableCors(w http.ResponseWriter) {

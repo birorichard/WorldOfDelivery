@@ -5,45 +5,27 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/birorichard/WorldOfDelivery/common"
 	"github.com/birorichard/WorldOfDelivery/model"
 	_ "github.com/proullon/ramsql/driver"
 )
 
 var Database *sql.DB
-var DbError error
 
 func OpenDB() {
-	Database, DbError = sql.Open("ramsql", "InMemoryDb")
-
-	if DbError != nil {
-		fmt.Printf("SQL OPEN : Error : %s\n", DbError)
-	}
-
+	var err error
+	Database, err = sql.Open("ramsql", "WorldOfDeliveryDB")
+	common.HandleError(err, "SQL Open error")
 }
 
 func CreateScheme() {
 	queryString := []string{
-		`CREATE TABLE Routes (SourcePortId INT, DestinationPortId INT, PosX INT, PosY INT, StepOrder INT);`,
+		`CREATE TABLE Route (SourcePortId INT, DestinationPortId INT, PosX INT, PosY INT, StepOrder INT);`,
 	}
-
+	var err error
 	for _, query := range queryString {
-		_, DbError = Database.Exec(query)
-		if DbError != nil {
-			fmt.Printf("sql.Exec: Query: %s\nError: %s\n\n", query, DbError)
-		}
-	}
-}
-
-func DropScheme() {
-	queryString := []string{
-		`DROP TABLE Routes;`,
-	}
-
-	for _, query := range queryString {
-		_, DbError = Database.Exec(query)
-		if DbError != nil {
-			fmt.Printf("sql.Exec: Query: %s\nError: %s\n\n", query, DbError)
-		}
+		_, err = Database.Exec(query)
+		common.HandleError(err, "Create scheme failed")
 	}
 }
 
@@ -51,26 +33,24 @@ func DropScheme() {
 func AddRoute(dto *model.ShipRouteCache) {
 	sourceId := dto.TableData.SourcePortId
 	destinationId := dto.TableData.DestinationPortId
-	queryString := "INSERT INTO Routes (SourcePortId, DestinationPortId, PosX, PosY, StepOrder) VALUES "
+	queryString := "INSERT INTO Route (SourcePortId, DestinationPortId, PosX, PosY, StepOrder) VALUES "
 	values := []string{}
 	for index, element := range dto.TableData.Steps {
 		values = append(values, (fmt.Sprintf("(%d, %d, %d, %d, %d)", sourceId, destinationId, element.X, element.Y, index)))
 	}
 
 	finalQuery := queryString + strings.Join(values[:], ", ")
-	_, DbError := Database.Exec(finalQuery)
-	if DbError != nil {
-		fmt.Printf("sql.Exec: Query: %s\nError: %s\n\n", finalQuery, DbError)
-	}
+	_, err := Database.Exec(finalQuery)
+	common.HandleError(err, fmt.Sprintf("sql.Exec: Query: %s", finalQuery))
+
 }
 
 func GetRoute(portId int, destinationPortId int) model.ShipRouteDTO {
-	queryString := `SELECT PosX, PosY FROM Routes WHERE SourcePortId = $1 AND DestinationPortId = $2 ORDER BY StepOrder ASC`
+	queryString := `SELECT PosX, PosY FROM Route WHERE SourcePortId = $1 AND DestinationPortId = $2 ORDER BY StepOrder ASC`
 
-	rows, DbError := Database.Query(queryString, portId, destinationPortId)
-	if DbError != nil {
-		fmt.Printf("sql.Exec: Query: %s\nError: %s\n\n", queryString, DbError)
-	}
+	rows, err := Database.Query(queryString, portId, destinationPortId)
+	common.HandleError(err, fmt.Sprintf("sql.Exec: Query: %s", queryString))
+
 	var steps []model.Position = make([]model.Position, 0)
 	for rows.Next() {
 		var posX int
@@ -88,12 +68,10 @@ func GetRoute(portId int, destinationPortId int) model.ShipRouteDTO {
 
 func GetAllRoutes() []model.ShipRouteDTO {
 	var routeDtos []model.ShipRouteDTO = make([]model.ShipRouteDTO, 0)
-	queryString := `SELECT SourcePortId, DestinationPortId, PosX, PosY, StepOrder FROM Routes ORDER BY SourcePortId, DestinationPortId, StepOrder ASC`
+	queryString := `SELECT SourcePortId, DestinationPortId, PosX, PosY, StepOrder FROM Route ORDER BY SourcePortId, DestinationPortId, StepOrder ASC`
 
-	rows, DbError := Database.Query(queryString)
-	if DbError != nil {
-		fmt.Printf("sql.Exec: Query: %s\nError: %s\n\n", queryString, DbError)
-	}
+	rows, err := Database.Query(queryString)
+	common.HandleError(err, fmt.Sprintf("sql.Exec: Query: %s", queryString))
 
 	previousPortId := -1
 	previousDestinationPortId := -1
