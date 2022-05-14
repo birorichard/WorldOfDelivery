@@ -66,17 +66,6 @@ func DiveComplete(w http.ResponseWriter, r *http.Request) {
 }
 
 func ReachedLand(w http.ResponseWriter, r *http.Request) {
-	// var dto model.ShipPositionDTO
-	// bodyBytes, err := ioutil.ReadAll(r.Body)
-	// if err != nil {
-	// 	handleBadRequest(w)
-	// }
-	// err = json.Unmarshal(bodyBytes, &dto)
-	// if err != nil {
-	// 	handleBadRequest(w)
-	// }
-	// go service.CancelShipRoute(dto.ShipId)
-
 	handleOkRequest(w)
 }
 

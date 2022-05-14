@@ -8,8 +8,8 @@ fetch('http://localhost:8080/route?fromCache=true', {method: 'GET', mode: 'cors'
 .then(routesdata => {
 	var c = document.getElementById("main-water");
 	var ctx = c.getContext("2d");
-	for (route_index = 0; route_index < routesdata.length; route_index++) {
-		var route_steps = routesdata[route_index]["Steps"];
+	for (route_index = 0; route_index < routesdata["Routes"].length; route_index++) {
+		var route_steps = routesdata["Routes"][route_index]["Steps"];
 		var route_step_count = route_steps.length;
 		ctx.beginPath();
 		

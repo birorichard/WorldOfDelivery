@@ -35,8 +35,18 @@ type ShipRouteDTO struct {
 
 // Inner use for cache routes
 type ShipRouteCache struct {
-	TableData  ShipRouteDTO
-	Discovered bool
-	ShipId     string
-	Canceled   bool
+	TableData                ShipRouteDTO
+	PlannedDestinationPortId int
+	Discovered               bool
+	ShipId                   string
+}
+
+type TableSize struct {
+	X int
+	Y int
+}
+
+type GetAllRoutesResponseDTO struct {
+	TableSize TableSize
+	Routes    []ShipRouteDTO
 }

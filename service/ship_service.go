@@ -6,6 +6,7 @@ import (
 
 	"github.com/birorichard/WorldOfDelivery/model"
 	"github.com/birorichard/WorldOfDelivery/repository"
+	"github.com/birorichard/WorldOfDelivery/validation"
 )
 
 var RouteCache = map[string]model.ShipRouteCache{}
@@ -13,6 +14,8 @@ var RouteCache = map[string]model.ShipRouteCache{}
 var DbQueue = DatabaseQueue{}
 
 var lock = sync.RWMutex{}
+
+var tableSize = model.TableSize{X: 0, Y: 0}
 
 func StartShipTracking(dto *model.ShipLeavePortDTO) {
 	if isTheRouteAlreadyDiscovered(&dto.PortId, &dto.DestinationPort) || isTheRouteBeingFollowed(&dto.PortId, &dto.DestinationPort) {
@@ -28,8 +31,9 @@ func StartShipTracking(dto *model.ShipLeavePortDTO) {
 			Steps:             []model.Position{},
 			Commited:          false,
 		},
-		Discovered: false,
-		ShipId:     dto.ShipId,
+		Discovered:               false,
+		ShipId:                   dto.ShipId,
+		PlannedDestinationPortId: dto.DestinationPort,
 	}
 
 	RouteCache[dto.ShipId] = route
@@ -44,70 +48,26 @@ func RegisterShipMovement(dto *model.ShipPositionDTO) {
 		}
 		if len(route.TableData.Steps) > 0 {
 			lastStep := route.TableData.Steps[len(route.TableData.Steps)-1]
-			if !isShipMovementValid(dto.ShipId, dto.X, dto.Y, lastStep.X, lastStep.Y) {
-				// CancelShipRoute(dto.ShipId)
-				// route.Canceled = true
-
-				// RouteCache[dto.ShipId] = route
+			if !validation.IsShipMovementValid(dto.X, dto.Y, lastStep.X, lastStep.Y) {
 				lock.Unlock()
 				return
 			}
 		}
 		route.TableData.Steps = append(route.TableData.Steps, model.Position{X: dto.X, Y: dto.Y, StepOrder: len(route.TableData.Steps)})
 		RouteCache[dto.ShipId] = route
-
+		setTableSize(dto.X, dto.Y)
 	}
 	lock.Unlock()
-}
-
-func CancelShipRoute(shipId string) {
-	lock.Lock()
-	if route, ok := RouteCache[shipId]; ok {
-		route.Canceled = true
-		RouteCache[shipId] = route
-
-	}
-	lock.Unlock()
-}
-
-func isShipMovementValid(shipId string, PosX int, PosY int, PrevPosX int, PrevPosY int) bool {
-	if PrevPosX == PosX && math.Abs(float64(PrevPosY-PosY)) == 1 {
-		return true
-
-	}
-	if PrevPosY == PosY && math.Abs(float64(PrevPosX-PosX)) == 1 {
-		return true
-	}
-
-	if math.Abs(float64(PrevPosX-PosX)) == 1 && math.Abs(float64(PrevPosY-PosY)) == 1 {
-		return true
-	}
-
-	// route := RouteCache[shipId]
-	// route.Canceled = true
-
-	// RouteCache[shipId] = route
-	return false
 }
 
 func EndShipTracking(dto *model.ShipReachedDestinationDTO) {
 	lock.Lock()
 
 	if route, ok := RouteCache[dto.ShipId]; ok {
-		// if len(route.TableData.Steps) > 0 {
-		// 	lastStep := route.TableData.Steps[len(route.TableData.Steps)-1]
-		// 	fmt.Println(dto.ShipPositionDTO)
-		// 	fmt.Println(lastStep.X, ", ", lastStep.Y)
-		// 	fmt.Println("\n\n")
-		// 	if !isShipMovementValid(dto.ShipId, dto.ShipPositionDTO.X, dto.ShipPositionDTO.Y, lastStep.X, lastStep.Y) {
-		// 		// CancelShipRoute(dto.ShipId)
-		// 		// route.Canceled = true
+		if !validation.IsReachingDestinationValid(&route, dto) {
+			return
+		}
 
-		// 		// RouteCache[dto.ShipId] = route
-		// 		lock.Unlock()
-		// 		return
-		// 	}
-		// }
 		route.Discovered = true
 		RouteCache[dto.ShipId] = route
 		lock.Unlock()
@@ -117,6 +77,7 @@ func EndShipTracking(dto *model.ShipReachedDestinationDTO) {
 	}
 }
 
+// Returns the count of the routes that already found
 func GetFoundRoutesCount() int {
 	var count int
 	lock.RLock()
@@ -130,15 +91,19 @@ func GetFoundRoutesCount() int {
 	return count
 }
 
-func GetShipRoutes(fromCache bool) []model.ShipRouteDTO {
-	if fromCache {
-		return getRouteDtosFromCache()
-	} else {
-		return repository.GetAllRoutes()
-	}
+// Returns all the found routes
+func GetShipRoutes(fromCache bool) model.GetAllRoutesResponseDTO {
+	var routes []model.ShipRouteDTO
 
+	if fromCache {
+		routes = getRouteDtosFromCache()
+	} else {
+		routes = repository.GetAllRoutes()
+	}
+	return model.GetAllRoutesResponseDTO{TableSize: model.TableSize{X: int(math.Ceil(float64(tableSize.X) * 1.02)), Y: int(math.Ceil(float64(tableSize.Y) * 1.02))}, Routes: routes}
 }
 
+// Maps the routes from type that used for cache to API response
 func getRouteDtosFromCache() []model.ShipRouteDTO {
 	var routeDtos []model.ShipRouteDTO = make([]model.ShipRouteDTO, 0)
 
@@ -180,4 +145,14 @@ func isTheRouteBeingFollowed(sourcePortId *int, destinationPortId *int) bool {
 	}
 
 	return false
+}
+
+func setTableSize(posX int, posY int) {
+	if posX > tableSize.X {
+		tableSize.X = posX
+	}
+
+	if posY > tableSize.Y {
+		tableSize.Y = posY
+	}
 }
